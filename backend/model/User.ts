@@ -32,7 +32,7 @@ const UserSchema = new Schema<IUser>(
     },
     avatar: {
       type: String,
-      default: "https://your-cdn.com/default-avatar.png", // set a default avatar URL
+      default: "", // set a default avatarURL if needed
     },
   },
   { timestamps: true }
