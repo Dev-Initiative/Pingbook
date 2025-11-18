@@ -15,7 +15,6 @@ router.post("/register", async (req: Request, res: Response) => {
 // Output: { success: boolean, message: string, token?: string, user?: IUser }
 router.post("/login", async (req: Request, res: Response) => {
   // TODO: Implement user login logic
-  res.send("Login endpoint hit");
   res.status(501).json({ message: "Not implemented" });
 });
 
