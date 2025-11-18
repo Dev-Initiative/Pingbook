@@ -42,7 +42,7 @@ const ContactSchema = new Schema(
     },
     photoUrl: {
       type: String,
-      default: "", // replace with default photoURL if needed
+      default: "", // replace with default photo URL
     },
     labels: [
       {
