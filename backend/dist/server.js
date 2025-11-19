@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import "./src/config/env.js";
 import express from "express";
 import cors from "cors";
 import authRoutes from "./src/routes/authRoutes.js";
@@ -8,7 +8,6 @@ import labelRoutes from "./src/routes/labelRoutes.js";
 import sharedContactRoutes from "./src/routes/sharedContactRoutes.js";
 import settingsRoutes from "./src/routes/settingsRoutes.js";
 import exportRoutes from "./src/routes/exportRoutes.js";
-dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 // Middleware

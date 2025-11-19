@@ -17,6 +17,12 @@ const LabelSchema = new Schema({
         ref: "User",
         required: true,
     },
+    contacts: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: "Contact",
+        },
+    ],
 }, { timestamps: true });
 export const Label = model("Label", LabelSchema);
 //# sourceMappingURL=Label.js.map

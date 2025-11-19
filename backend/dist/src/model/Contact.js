@@ -29,13 +29,6 @@ const ContactSchema = new Schema({
         type: String,
         default: "", // replace with default photo URL
     },
-    labels: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Label",
-            default: [],
-        },
-    ],
 }, { timestamps: true });
 export const Contact = model("Contact", ContactSchema);
 //# sourceMappingURL=Contact.js.map

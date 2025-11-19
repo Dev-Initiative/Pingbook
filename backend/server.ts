@@ -1,4 +1,4 @@
-import "./config/env.js";
+import "./src/config/env.js";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import authRoutes from "./src/routes/authRoutes.js";

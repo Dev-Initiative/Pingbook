@@ -22,6 +22,17 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false,
     },
+    settings: {
+        theme: {
+            type: String,
+            enum: ["light", "dark"],
+            default: "light",
+        },
+        notifications: {
+            type: Boolean,
+            default: true,
+        },
+    },
     avatar: {
         type: String,
         default: "", // set a default avatarURL if needed

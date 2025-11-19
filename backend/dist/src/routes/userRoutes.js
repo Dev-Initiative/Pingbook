@@ -7,6 +7,12 @@ router.get("/", async (req, res) => {
     // TODO: Implement get all users logic (requires auth middleware)
     res.status(501).json({ message: "Not implemented" });
 });
+// GET /api/users/is-auth
+// Input: Authorization header with JWT token
+// Output: { success: boolean, isAuth: boolean }
+router.get("/is-auth", async (req, res) => {
+    res.status(501).json({ message: "Not implemented" });
+});
 // GET /api/users/:id
 // Input: Authorization header with JWT token
 // Output: { success: boolean, user: IUser }
@@ -47,6 +53,13 @@ router.put("/profile", async (req, res) => {
 // Output: { success: boolean, message: string }
 router.delete("/profile", async (req, res) => {
     // TODO: Implement delete user account logic (requires auth middleware)
+    res.status(501).json({ message: "Not implemented" });
+});
+// POST /api/users/logout
+// Input: Authorization header with JWT token
+// Output: { success: boolean, message: string }
+router.post("/logout", async (req, res) => {
+    // TODO: Implement logout logic (requires auth middleware)
     res.status(501).json({ message: "Not implemented" });
 });
 // POST /api/users/import-contacts

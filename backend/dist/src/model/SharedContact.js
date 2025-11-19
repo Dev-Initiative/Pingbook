@@ -1,10 +1,12 @@
 import { Schema, model } from "mongoose";
 const SharedContactSchema = new Schema({
-    contactId: {
-        type: Schema.Types.ObjectId,
-        ref: "Contact",
-        required: true,
-    },
+    contacts: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: "Contact",
+            required: true,
+        },
+    ],
     sharedWithUserId: {
         type: Schema.Types.ObjectId,
         ref: "User",
@@ -20,5 +22,5 @@ const SharedContactSchema = new Schema({
         default: Date.now,
     },
 }, { timestamps: { createdAt: true, updatedAt: false } });
-export const SaredContact = model("SharedContact", SharedContactSchema);
+export const SharedContact = model("SharedContact", SharedContactSchema);
 //# sourceMappingURL=SharedContact.js.map
