@@ -58,6 +58,14 @@ router.delete("/profile", async (req: Request, res: Response) => {
   res.status(501).json({ message: "Not implemented" });
 });
 
+// POST /api/users/logout
+// Input: Authorization header with JWT token
+// Output: { success: boolean, message: string }
+router.post("/logout", async (req: Request, res: Response) => {
+  // TODO: Implement logout logic (requires auth middleware)
+  res.status(501).json({ message: "Not implemented" });
+});
+
 // POST /api/users/import-contacts
 // Input: Authorization header with JWT token, { contacts: IContact[] }
 // Output: { success: boolean, message: string, importedCount: number }
