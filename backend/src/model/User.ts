@@ -6,6 +6,10 @@ export interface IUser extends Document {
   phone: string;
   password: string;
   emailVerified: boolean;
+  settings?: {
+    theme: "light" | "dark";
+    notifications: boolean;
+  };
   avatar: string;
   createdAt: Date;
   updatedAt: Date;
@@ -34,6 +38,17 @@ const UserSchema = new Schema<IUser>(
     emailVerified: {
       type: Boolean,
       default: false,
+    },
+    settings: {
+      theme: {
+        type: String,
+        enum: ["light", "dark"],
+        default: "light",
+      },
+      notifications: {
+        type: Boolean,
+        default: true,
+      },
     },
     avatar: {
       type: String,

@@ -26,6 +26,14 @@ router.get("/sent", async (req: Request, res: Response) => {
   res.status(501).json({ message: "Not implemented" });
 });
 
+// Get /api/shared-contacts/:id/status
+// Input: Authorization header with JWT token
+// Output: { success: boolean, status: string }
+router.get("/:id/status", async (req: Request, res: Response) => {
+  // TODO: Implement get shared contact status logic (requires auth middleware, check ownership)
+  res.status(501).json({ message: "Not implemented" });
+});
+
 // PUT /api/shared-contacts/:id/accept
 // Input: Authorization header with JWT token
 // Output: { success: boolean, message: string, sharedContact: ISharedContact }

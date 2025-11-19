@@ -10,6 +10,14 @@ router.get("/", async (req: Request, res: Response) => {
   res.status(501).json({ message: "Not implemented" });
 });
 
+
+// GET /api/users/is-auth
+// Input: Authorization header with JWT token
+// Output: { success: boolean, isAuth: boolean }
+router.get("/is-auth", async (req: Request, res: Response) => {
+  res.status(501).json({ message: "Not implemented" });
+});
+
 // GET /api/users/:id
 // Input: Authorization header with JWT token
 // Output: { success: boolean, user: IUser }
