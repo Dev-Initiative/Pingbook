@@ -3,11 +3,11 @@ import { Schema, model, Document } from "mongoose";
 export interface IContact extends Document {
   firstname: string;
   lastname: string;
-  email: string;
+  email?: string;
   phone: string;
-  address: string;
+  address?: string;
   userId: Schema.Types.ObjectId; // the id of the user that added the contact
-  photoUrl: string;
+  photoUrl?: string;
   labels: Schema.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
