@@ -8,7 +8,6 @@ export interface IContact extends Document {
   address?: string;
   userId: Schema.Types.ObjectId; // the id of the user that added the contact
   photoUrl?: string;
-  labels: Schema.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,13 +43,6 @@ const ContactSchema = new Schema(
       type: String,
       default: "", // replace with default photo URL
     },
-    labels: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Label",
-        default: [],
-      },
-    ],
   },
   { timestamps: true }
 );

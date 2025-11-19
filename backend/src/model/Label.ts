@@ -5,6 +5,7 @@ export interface ILabel extends Document {
   color: string;
   description?: string;
   userId: Schema.Types.ObjectId; // the id of the user that created the label
+  contacts: Schema.Types.ObjectId[]; // array of contact ids associated with this label
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +29,12 @@ const LabelSchema = new Schema(
       ref: "User",
       required: true,
     },
+    contacts: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Contact",
+      },
+    ],
   },
   { timestamps: true }
 );

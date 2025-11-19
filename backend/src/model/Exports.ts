@@ -2,7 +2,6 @@ import { Schema, model, Document } from "mongoose";
 
 export interface IExport extends Document {
   userId: Schema.Types.ObjectId; // the id of the user who made the export
-  filePath: string; // path to the exported file
   format: "csv" | "vcf"; // format of the exported file
   status: "completed" | "in_progress" | "failed"; // status of the export
 
@@ -22,14 +21,19 @@ const ExportSchema = new Schema<IExport>(
       ref: "User",
       required: true,
     },
-    filePath: {
-      type: String,
-      required: true,
-    },
     format: {
       type: String,
       enum: ["csv", "vcf"],
       required: true,
+    },
+    status: {
+      type: String,
+      enum: ["completed", "in_progress", "failed"],
+      default: "in_progress",
+    },
+    labelId: {
+      type: Schema.Types.ObjectId,
+      ref: "Label",
     },
   },
   { timestamps: { createdAt: true, updatedAt: false } }

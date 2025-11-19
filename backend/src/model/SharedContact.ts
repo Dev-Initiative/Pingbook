@@ -1,19 +1,21 @@
 import { Schema, model, Document } from "mongoose";
 
 export interface ISharedContact extends Document {
-  contactId: Schema.Types.ObjectId; // the id of the contact being shared
-  sharedWithUserId: Schema.Types.ObjectId; // the id of the user that the contact was shared to
+  contacts: Schema.Types.ObjectId[]; // array of contact ids being shared
+  sharedWithUserId: Schema.Types.ObjectId; // the id of the user that the contacts were shared to
   status: "accepted" | "pending" | "rejected"; // status of the shared contact
-  sharedAt: Date; // date when the contact was shared
+  sharedAt: Date; // date when the contacts were shared
 }
 
 const SharedContactSchema = new Schema(
   {
-    contactId: {
-      type: Schema.Types.ObjectId,
-      ref: "Contact",
-      required: true,
-    },
+    contacts: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Contact",
+        required: true,
+      },
+    ],
     sharedWithUserId: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -32,7 +34,7 @@ const SharedContactSchema = new Schema(
   { timestamps: { createdAt: true, updatedAt: false } }
 );
 
-export const SaredContact = model<ISharedContact>(
+export const SharedContact = model<ISharedContact>(
   "SharedContact",
   SharedContactSchema
 );
