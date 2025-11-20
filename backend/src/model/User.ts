@@ -3,13 +3,14 @@ import { Schema, model, Document } from "mongoose";
 export interface IUser extends Document {
   username: string;
   email: string;
-  password?: string;
+  password?: string; // Optional: Not present for Google users
   phone?: string;
   avatar?: string;
   emailVerified: boolean;
   verificationToken?: string;
   verificationTokenExpires?: Date;
   googleId?: string;
+  settings?:Schema.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,8 +18,8 @@ export interface IUser extends Document {
 const UserSchema = new Schema<IUser>(
   {
     username: {
+      unique: true,
       type: String,
-      required: true,
     },
     email: {
       type: String,
@@ -26,7 +27,7 @@ const UserSchema = new Schema<IUser>(
       unique: true,
     },
     password: {
-      type: String,
+      type: String, // Not required
     },
     phone: {
       type: String,
@@ -51,6 +52,12 @@ const UserSchema = new Schema<IUser>(
       type: String,
       unique: true,
       sparse: true,
+    },
+    settings: {
+      type: [Schema.Types.ObjectId],
+      ref: "Setting",
+      default: [],
+      required: false,
     },
   },
   { timestamps: true }
