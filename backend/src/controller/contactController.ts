@@ -13,6 +13,7 @@ export async function getAllContacts(req: AuthRequest, res: Response) {
     }
 
     const { page = 1, limit = 10, search, labelId } = req.query;
+// use Number.parseInt rather
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
