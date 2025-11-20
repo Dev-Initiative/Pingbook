@@ -31,7 +31,9 @@ export const validateRegister = [
   body("password")
     .trim()
     .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long"),
+    .withMessage("Password must be at least 6 characters long")
+    .matches(/^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/)
+    .withMessage("Password contains invalid characters"),
   body("phone")
     .trim()
     .isLength({ min: 10 })
@@ -61,5 +63,7 @@ export const validateResetPassword = [
   body("newPassword")
     .trim()
     .isLength({ min: 6 })
-    .withMessage("New password must be at least 6 characters long"),
+    .withMessage("New password must be at least 6 characters long")
+    .matches(/^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/)
+    .withMessage("New password contains invalid characters"),
 ];
