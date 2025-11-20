@@ -68,7 +68,7 @@ export async function getLabel(req: AuthRequest, res: Response) {
 export async function createLabel(req: AuthRequest, res: Response) {
   try {
     const userId = req.user?.id;
-    const { name, color, description } = req.body;
+    const { name, color, description, contacts } = req.body;
 
     if (!userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -81,15 +81,39 @@ export async function createLabel(req: AuthRequest, res: Response) {
       });
     }
 
+    // Validate contacts if provided
+    if (contacts && contacts.length > 0) {
+      for (const contactId of contacts) {
+        const existingContact = await Contact.findOne({
+          _id: contactId,
+          userId,
+        });
+        if (!existingContact) {
+          return res.status(400).json({
+            success: false,
+            message: `Contact with id ${contactId} does not exist or does not belong to user`,
+          });
+        }
+      }
+    }
+
     const newLabel = new Label({
       name,
       color,
       description,
       userId,
-      contacts: [],
+      contacts: contacts || [],
     });
 
     const savedLabel = await newLabel.save();
+
+    // Add label to contacts
+    if (contacts && contacts.length > 0) {
+      await Contact.updateMany(
+        { _id: { $in: contacts } },
+        { $addToSet: { labels: savedLabel._id } }
+      );
+    }
 
     return res.status(201).json({
       success: true,
@@ -110,7 +134,7 @@ export async function updateLabel(req: AuthRequest, res: Response) {
   try {
     const userId = req.user?.id;
     const { id } = req.params;
-    const { name, color, description } = req.body;
+    const { name, color, description, contacts } = req.body;
 
     if (!userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -124,11 +148,55 @@ export async function updateLabel(req: AuthRequest, res: Response) {
       });
     }
 
+    // Validate contacts if provided
+    if (contacts && contacts.length > 0) {
+      for (const contactId of contacts) {
+        const existingContact = await Contact.findOne({
+          _id: contactId,
+          userId,
+        });
+        if (!existingContact) {
+          return res.status(400).json({
+            success: false,
+            message: `Contact with id ${contactId} does not exist or does not belong to user`,
+          });
+        }
+      }
+    }
+
+    const oldContacts = label.contacts.map((id) => id.toString());
+    const newContacts = contacts
+      ? contacts.map((id) => id.toString())
+      : oldContacts;
+
     label.name = name || label.name;
     label.color = color || label.color;
     label.description = description || label.description;
+    label.contacts = contacts || label.contacts;
 
     const updatedLabel = await label.save();
+
+    // Update contacts: add to new contacts, remove from old contacts not in new
+    const contactsToAdd = newContacts.filter(
+      (contact) => !oldContacts.includes(contact)
+    );
+    const contactsToRemove = oldContacts.filter(
+      (contact) => !newContacts.includes(contact)
+    );
+
+    if (contactsToAdd.length > 0) {
+      await Contact.updateMany(
+        { _id: { $in: contactsToAdd } },
+        { $addToSet: { labels: updatedLabel._id } }
+      );
+    }
+
+    if (contactsToRemove.length > 0) {
+      await Contact.updateMany(
+        { _id: { $in: contactsToRemove } },
+        { $pull: { labels: updatedLabel._id } }
+      );
+    }
 
     return res.status(200).json({
       success: true,

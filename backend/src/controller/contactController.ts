@@ -13,9 +13,9 @@ export async function getAllContacts(req: AuthRequest, res: Response) {
     }
 
     const { page = 1, limit = 10, search, labelId } = req.query;
-// use Number.parseInt rather
-    const pageNum = parseInt(page as string, 10);
-    const limitNum = parseInt(limit as string, 10);
+    // use Number.parseInt rather
+    const pageNum = Number.parseInt(page as string, 10);
+    const limitNum = Number.parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
 
     let query: any = { userId };
@@ -109,18 +109,19 @@ export async function createContact(req: AuthRequest, res: Response) {
       });
     }
 
-   // Why are you checking the label length in the system 
-    // Validate labels if provided
+    // Validate labels based on id's if provided
     if (labels && labels.length > 0) {
-      const existingLabels = await Label.find({
-        _id: { $in: labels },
-        userId,
-      });
-      if (existingLabels.length !== labels.length) {
-        return res.status(400).json({
-          success: false,
-          message: "One or more labels do not exist or do not belong to user",
+      for (const labelId of labels) {
+        const existingLabel = await Label.findOne({
+          _id: labelId,
+          userId,
         });
+        if (!existingLabel) {
+          return res.status(400).json({
+            success: false,
+            message: `Label with id ${labelId} does not exist or does not belong to user`,
+          });
+        }
       }
     }
 
@@ -181,22 +182,24 @@ export async function updateContact(req: AuthRequest, res: Response) {
       });
     }
 
-    // Validate labels if provided
+    // Validate labels based on id's if provided
     if (labels && labels.length > 0) {
-      const existingLabels = await Label.find({
-        _id: { $in: labels },
-        userId,
-      });
-      if (existingLabels.length !== labels.length) {
-        return res.status(400).json({
-          success: false,
-          message: "One or more labels do not exist or do not belong to user",
+      for (const labelId of labels) {
+        const existingLabel = await Label.findOne({
+          _id: labelId,
+          userId,
         });
+        if (!existingLabel) {
+          return res.status(400).json({
+            success: false,
+            message: `Label with id ${labelId} does not exist or does not belong to user`,
+          });
+        }
       }
     }
 
-    const oldLabels = contact.labels;
-    const newLabels = labels || contact.labels;
+    const oldLabels = contact.labels.map((id) => id.toString());
+    const newLabels = labels ? labels.map((id) => id.toString()) : oldLabels;
 
     contact.firstname = firstname || contact.firstname;
     contact.lastname = lastname || contact.lastname;
@@ -204,7 +207,7 @@ export async function updateContact(req: AuthRequest, res: Response) {
     contact.phone = phone || contact.phone;
     contact.address = address || contact.address;
     contact.photoUrl = photoUrl || contact.photoUrl;
-    contact.labels = newLabels;
+    contact.labels = labels || contact.labels; // Keep as ObjectIds
 
     const updatedContact = await contact.save();
 
