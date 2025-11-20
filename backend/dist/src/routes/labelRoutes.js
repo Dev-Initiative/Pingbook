@@ -1,39 +1,26 @@
 import { Router } from "express";
+import { getAllLabels, getLabel, createLabel, updateLabel, deleteLabel, } from "../controller/labelController.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 const router = Router();
 // GET /api/labels
 // Input: Authorization header with JWT token
 // Output: { success: boolean, labels: ILabel[] }
-router.get("/", async (req, res) => {
-    // TODO: Implement get all labels for user logic (requires auth middleware)
-    res.status(501).json({ message: "Not implemented" });
-});
+router.get("/", authMiddleware, getAllLabels);
 // GET /api/labels/:id
 // Input: Authorization header with JWT token
 // Output: { success: boolean, label: ILabel }
-router.get("/:id", async (req, res) => {
-    // TODO: Implement get single label logic (requires auth middleware, check ownership)
-    res.status(501).json({ message: "Not implemented" });
-});
+router.get("/:id", authMiddleware, getLabel);
 // POST /api/labels
 // Input: Authorization header with JWT token, { name: string, color?: string, description?: string }
 // Output: { success: boolean, message: string, label: ILabel }
-router.post("/", async (req, res) => {
-    // TODO: Implement create label logic (requires auth middleware)
-    res.status(501).json({ message: "Not implemented" });
-});
+router.post("/", authMiddleware, createLabel);
 // PUT /api/labels/:id
 // Input: Authorization header with JWT token, { name?: string, color?: string, description?: string }
 // Output: { success: boolean, message: string, label: ILabel }
-router.put("/:id", async (req, res) => {
-    // TODO: Implement update label logic (requires auth middleware, check ownership)
-    res.status(501).json({ message: "Not implemented" });
-});
+router.put("/:id", authMiddleware, updateLabel);
 // DELETE /api/labels/:id
 // Input: Authorization header with JWT token
 // Output: { success: boolean, message: string }
-router.delete("/:id", async (req, res) => {
-    // TODO: Implement delete label logic (requires auth middleware, check ownership)
-    res.status(501).json({ message: "Not implemented" });
-});
+router.delete("/:id", authMiddleware, deleteLabel);
 export default router;
 //# sourceMappingURL=labelRoutes.js.map

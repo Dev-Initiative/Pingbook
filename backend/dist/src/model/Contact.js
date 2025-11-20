@@ -10,7 +10,7 @@ const ContactSchema = new Schema({
     },
     email: {
         type: String,
-        required: true,
+        required: false,
     },
     phone: {
         type: String,
@@ -29,6 +29,12 @@ const ContactSchema = new Schema({
         type: String,
         default: "", // replace with default photo URL
     },
+    labels: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: "Label",
+        },
+    ],
 }, { timestamps: true });
 export const Contact = model("Contact", ContactSchema);
 //# sourceMappingURL=Contact.js.map

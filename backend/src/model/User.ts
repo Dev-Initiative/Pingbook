@@ -10,7 +10,9 @@ export interface IUser extends Document {
     theme: "light" | "dark";
     notifications: boolean;
   };
-  avatar: string;
+  avatar?: string;
+  verificationToken?: string;
+  verificationTokenExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

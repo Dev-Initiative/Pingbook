@@ -7,6 +7,11 @@ const SharedContactSchema = new Schema({
             required: true,
         },
     ],
+    sharedByUserId: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
     sharedWithUserId: {
         type: Schema.Types.ObjectId,
         ref: "User",

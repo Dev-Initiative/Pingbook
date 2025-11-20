@@ -1,11 +1,13 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import sgMail from "@sendgrid/mail";
 import { User } from "../model/User.js";
+import { AuthRequest } from "../middleware/authMiddleware.js";
 
 // LOGIN CONTROLLER
-export async function loginUser(req: Request, res: Response) {
+export async function loginUser(req: AuthRequest, res: Response) {
   try {
     const { email, password } = req.body;
 
@@ -33,12 +35,21 @@ export async function loginUser(req: Request, res: Response) {
         message: "Please verify your email before logging in",
       });
 
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user._id.toString(), email: user.email },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
+    );
+
     return res.status(200).json({
       success: true,
       message: "Login successful",
+      token,
       user: {
         id: user._id,
         email: user.email,
+        username: user.username,
       },
     });
   } catch (error) {
@@ -86,7 +97,7 @@ const sendVerificationEmail = async (email: string, token: string) => {
 };
 
 // REGISTER CONTROLLER
-export async function registerUser(req: Request, res: Response) {
+export async function registerUser(req: AuthRequest, res: Response) {
   try {
     const { username, email, password, phone } = req.body;
 
@@ -149,6 +160,87 @@ export async function registerUser(req: Request, res: Response) {
     return res.status(500).json({
       success: false,
       message: "Server error during registration",
+    });
+  }
+}
+
+// VERIFY EMAIL CONTROLLER
+export async function verifyEmail(req: AuthRequest, res: Response) {
+  try {
+    const { token } = req.body;
+
+    const user = await User.findOne({
+      verificationToken: token,
+      verificationTokenExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification token",
+      });
+    }
+
+    user.emailVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+    });
+  } catch (error) {
+    console.error("Verify email error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during email verification",
+    });
+  }
+}
+
+// RESET PASSWORD CONTROLLER
+export async function resetPassword(req: AuthRequest, res: Response) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during password reset",
     });
   }
 }
