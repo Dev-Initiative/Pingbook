@@ -6,141 +6,126 @@ import sgMail from "@sendgrid/mail";
 import { User } from "../model/User.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 
-// LOGIN CONTROLLER
-export async function loginUser(req: AuthRequest, res: Response) {
+// GOOGLE LOGIN CONTROLLER
+export async function googleLogin(req: AuthRequest, res: Response) {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password)
+    const googleUser = req.user as any;
+    if (!googleUser) {
+      console.error("Google authentication failed: req.user is undefined.");
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Google authentication failed",
       });
+    }
 
-    const user = await User.findOne({ email });
-    if (!user)
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid user credentials" });
+    // User is already created/authenticated by passport
+    const user = googleUser;
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid user credentials" });
-
-    if (!user.emailVerified)
-      return res.status(403).json({
-        success: false,
-        message: "Please verify your email before logging in",
-      });
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user._id.toString(), email: user.email },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ id: user._id.toString(), email: user.email }, process.env.JWT_SECRET!, { expiresIn: "7d" });
 
     return res.status(200).json({
       success: true,
       message: "Login successful",
       token,
-      user: {
-        id: user._id,
-        email: user.email,
-        username: user.username,
-      },
+      user: { id: user._id, email: user.email, username: user.username, avatar: user.avatar },
+    });
+  } catch (error: any) {
+    console.error("Google login error:", error);
+    return res.status(500).json({ 
+        success: false, 
+        message: "Server error during Google login",
+        error: error.message
+    });
+  }
+}
+
+// STANDARD LOGIN CONTROLLER
+export async function loginUser(req: AuthRequest, res: Response) {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user || !user.password) {
+      return res.status(400).json({ success: false, message: "Invalid user credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Invalid user credentials" });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(403).json({ success: false, message: "Please verify your email before logging in" });
+    }
+
+    const token = jwt.sign({ id: user._id.toString(), email: user.email }, process.env.JWT_SECRET!, { expiresIn: "7d" });
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      user: { id: user._id, email: user.email, username: user.username },
     });
   } catch (error) {
     console.error("Login error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error during login" });
+    return res.status(500).json({ success: false, message: "Server error during login" });
   }
 }
 
 const sendVerificationEmail = async (email: string, token: string) => {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL_FROM) {
     console.error("SendGrid API key or sender email not configured");
-    return false;
+    return;
   }
-
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  const verificationURL = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+  const msg = {
+    to: email,
+    from: { email: process.env.SENDGRID_EMAIL_FROM, name: "Pingbook Support" },
+    subject: "Verify Your Email - Pingbook",
+    html: `<p>Please verify your email by clicking this link: <a href="${verificationURL}">${verificationURL}</a></p>`,
+  };
   try {
-    const verificationURL = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-
-    const msg = {
-      to: email,
-      from: {
-        email: process.env.SENDGRID_EMAIL_FROM,
-        name: "Pingbook Support", // change to app name later
-      },
-      subject: "Verify Email - Pingbook",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #19183B;">Welcome to AcademicHive!</h2>
-          <p>Thank you for signing up. Please verify your email address by clicking the button below:</p>
-          <a href="${verificationURL}" style="display: inline-block; background-color: #19183B; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">Verify Email</a>
-          <p>Or copy and paste this link into your browser:</p>
-          <p style="word-break: break-all; color: #666;">${verificationURL}</p>
-          <p style="color: #999; font-size: 12px; margin-top: 30px;">This link will expire in 24 hours.</p>
-        </div>
-            `,
-    };
     await sgMail.send(msg);
-
-    return true;
   } catch (error) {
     console.error("Error sending verification email:", error);
-    return false;
   }
 };
 
-// REGISTER CONTROLLER
+// STANDARD REGISTER CONTROLLER
 export async function registerUser(req: AuthRequest, res: Response) {
   try {
     const { username, email, password, phone } = req.body;
 
-    if (!username || !email || !password)
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
-
     const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res
-        .status(400)
-        .json({ success: false, message: "User already exists" });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "User already exists" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = crypto.randomBytes(32).toString("hex");
 
-    // For testing, skip email verification
     const newUser = new User({
       username,
       email,
       phone,
       password: hashedPassword,
-      emailVerified: true, // Set to true for testing
-      avatar: "",
+      emailVerified: false,
+      verificationToken,
+      verificationTokenExpires: Date.now() + 3600000, // 1 hour
     });
 
     const savedUser = await newUser.save();
+    await sendVerificationEmail(savedUser.email, verificationToken);
 
     return res.status(201).json({
       success: true,
-      message: "Registration successful!",
-      user: {
-        id: savedUser._id,
-        username: savedUser.username,
-        email: savedUser.email,
-      },
+      message: "Registration successful! Please check your email to verify your account.",
+      user: { id: savedUser._id, username: savedUser.username, email: savedUser.email },
     });
   } catch (error) {
     console.error("Registration error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error during registration",
-    });
+    return res.status(500).json({ success: false, message: "Server error during registration" });
   }
 }
 
@@ -148,17 +133,13 @@ export async function registerUser(req: AuthRequest, res: Response) {
 export async function verifyEmail(req: AuthRequest, res: Response) {
   try {
     const { token } = req.body;
-
     const user = await User.findOne({
       verificationToken: token,
       verificationTokenExpires: { $gt: Date.now() },
     });
 
     if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired verification token",
-      });
+      return res.status(400).json({ success: false, message: "Invalid or expired verification token" });
     }
 
     user.emailVerified = true;
@@ -166,61 +147,73 @@ export async function verifyEmail(req: AuthRequest, res: Response) {
     user.verificationTokenExpires = undefined;
     await user.save();
 
-    return res.status(200).json({
-      success: true,
-      message: "Email verified successfully",
-    });
+    return res.status(200).json({ success: true, message: "Email verified successfully" });
   } catch (error) {
     console.error("Verify email error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error during email verification",
-    });
+    return res.status(500).json({ success: false, message: "Server error during email verification" });
   }
 }
 
-// RESET PASSWORD CONTROLLER
+// SET PASSWORD CONTROLLER (for Google users setting a password for the first time)
+export async function setPassword(req: AuthRequest, res: Response) {
+  try {
+    const { newPassword } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (user.password) {
+      return res.status(400).json({ success: false, message: "Password already set. Use the 'Reset Password' feature to change it." });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    return res.status(200).json({ success: true, message: "Password has been set successfully." });
+  } catch (error) {
+    console.error("Set password error:", error);
+    return res.status(500).json({ success: false, message: "Server error during password setting" });
+  }
+}
+
+// RESET PASSWORD CONTROLLER (for standard users)
 export async function resetPassword(req: AuthRequest, res: Response) {
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    
+    // Guide Google users to the correct flow
+    if (!user.password) {
+        return res.status(400).json({ success: false, message: "This account is authenticated via Google. Please use the 'Set Password' feature to create a password." });
     }
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({
-        success: false,
-        message: "Current password is incorrect",
-      });
+      return res.status(400).json({ success: false, message: "Current password is incorrect" });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
+    user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
-    return res.status(200).json({
-      success: true,
-      message: "Password reset successfully",
-    });
+    return res.status(200).json({ success: true, message: "Password reset successfully" });
   } catch (error) {
     console.error("Reset password error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error during password reset",
-    });
+    return res.status(500).json({ success: false, message: "Server error during password reset" });
   }
 }

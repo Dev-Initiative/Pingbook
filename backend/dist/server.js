@@ -1,6 +1,8 @@
 import "./src/config/env.js";
 import express from "express";
 import cors from "cors";
+import session from "express-session";
+import passport from "./src/config/passport.js";
 import { connectDB } from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
@@ -15,6 +17,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Express session
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+}));
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);

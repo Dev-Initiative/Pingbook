@@ -3,16 +3,13 @@ import { Schema, model, Document } from "mongoose";
 export interface IUser extends Document {
   username: string;
   email: string;
-  phone: string;
-  password: string;
-  emailVerified: boolean;
-  settings?: {
-    theme: "light" | "dark";
-    notifications: boolean;
-  };
+  password?: string;
+  phone?: string;
   avatar?: string;
+  emailVerified: boolean;
   verificationToken?: string;
   verificationTokenExpires?: Date;
+  googleId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,33 +25,32 @@ const UserSchema = new Schema<IUser>(
       required: true,
       unique: true,
     },
-    phone: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     password: {
       type: String,
-      required: true,
+    },
+    phone: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    avatar: {
+      type: String,
+      default: "",
     },
     emailVerified: {
       type: Boolean,
       default: false,
     },
-    settings: {
-      theme: {
-        type: String,
-        enum: ["light", "dark"],
-        default: "light",
-      },
-      notifications: {
-        type: Boolean,
-        default: true,
-      },
-    },
-    avatar: {
+    verificationToken: {
       type: String,
-      default: "", // set a default avatarURL if needed
+    },
+    verificationTokenExpires: {
+      type: Date,
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
     },
   },
   { timestamps: true }
