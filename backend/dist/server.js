@@ -1,6 +1,7 @@
 import "./src/config/env.js";
 import express from "express";
 import cors from "cors";
+import { connectDB } from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
 import contactRoutes from "./src/routes/contactRoutes.js";
@@ -25,7 +26,10 @@ app.use("/api/exports", exportRoutes);
 app.get("/", (req, res) => {
     res.send("Contact management system backend says hello.");
 });
-app.listen(PORT, () => {
-    console.log(`Server running on port`, PORT);
+// Connect to database and start server
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server running on port`, PORT);
+    });
 });
 //# sourceMappingURL=server.js.map

@@ -34,12 +34,13 @@ router.post("/login", validateLogin, handleValidationErrors, loginUser);
 // POST /api/auth/verify-email
 // Input: { token: string }
 // Output: { success: boolean, message: string }
-router.post(
-  "/verify-email",
-  validateVerifyEmail,
-  handleValidationErrors,
-  verifyEmail
-);
+// Temporarily disabled for testing
+// router.post(
+//   "/verify-email",
+//   validateVerifyEmail,
+//   handleValidationErrors,
+//   verifyEmail
+// );
 
 // PUT /api/auth/reset-password
 // Input: Authorization header with JWT token, { currentPassword: string, newPassword: string }

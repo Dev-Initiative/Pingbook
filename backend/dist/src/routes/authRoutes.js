@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { loginUser, registerUser, verifyEmail, resetPassword, } from "../controller/authController.js";
+import { loginUser, registerUser, resetPassword, } from "../controller/authController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
-import { validateRegister, validateLogin, validateVerifyEmail, validateResetPassword, handleValidationErrors, } from "../middleware/validateAuth.js";
+import { validateRegister, validateLogin, validateResetPassword, handleValidationErrors, } from "../middleware/validateAuth.js";
 const router = Router();
 // POST /api/auth/register
 // Input: { username: string, email: string, phone: string, password: string, avatar?: string }
@@ -14,7 +14,13 @@ router.post("/login", validateLogin, handleValidationErrors, loginUser);
 // POST /api/auth/verify-email
 // Input: { token: string }
 // Output: { success: boolean, message: string }
-router.post("/verify-email", validateVerifyEmail, handleValidationErrors, verifyEmail);
+// Temporarily disabled for testing
+// router.post(
+//   "/verify-email",
+//   validateVerifyEmail,
+//   handleValidationErrors,
+//   verifyEmail
+// );
 // PUT /api/auth/reset-password
 // Input: Authorization header with JWT token, { currentPassword: string, newPassword: string }
 // Output: { success: boolean, message: string }

@@ -61,18 +61,18 @@ export async function loginUser(req: AuthRequest, res: Response) {
 }
 
 const sendVerificationEmail = async (email: string, token: string) => {
-  if (!process.env.SENGRID_API_KEY || !process.env.VERIFICATION_EMAIL_FROM) {
+  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL_FROM) {
     console.error("SendGrid API key or sender email not configured");
     return false;
   }
 
   try {
-    const verificationURL = `${process.env.FORNTEND_URL}/verify-email?token=${token}`;
+    const verificationURL = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
     const msg = {
       to: email,
       from: {
-        email: process.env.SENDGRID_EMAIIL_FROM,
+        email: process.env.SENDGRID_EMAIL_FROM,
         name: "Pingbook Support", // change to app name later
       },
       subject: "Verify Email - Pingbook",
@@ -114,47 +114,27 @@ export async function registerUser(req: AuthRequest, res: Response) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate email verification token
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-
-    // Create user
+    // For testing, skip email verification
     const newUser = new User({
       username,
       email,
       phone,
       password: hashedPassword,
-      emailVerified: false,
+      emailVerified: true, // Set to true for testing
       avatar: "",
-      verificationToken,
-      verificationTokenExpires: Date.now() + 3600 * 1000, // 1 hour
     });
 
     const savedUser = await newUser.save();
 
-    // Try email sending
-    const sent = await sendVerificationEmail(email, verificationToken);
-
-    if (sent) {
-      return res.status(201).json({
-        success: true,
-        message:
-          "Registration successful! Please verify your email to activate your account.",
-        requireVerification: true,
-        emailSent: true,
-      });
-    } else {
-      console.error("Email sending failed");
-
-      // Delete user after failed verification
-      await User.deleteOne({ _id: savedUser._id });
-
-      return res.status(500).json({
-        success: false,
-        message: "User created, but failed to send verification email.",
-        requireVerification: true,
-        emailSent: false,
-      });
-    }
+    return res.status(201).json({
+      success: true,
+      message: "Registration successful!",
+      user: {
+        id: savedUser._id,
+        username: savedUser.username,
+        email: savedUser.email,
+      },
+    });
   } catch (error) {
     console.error("Registration error:", error);
     return res.status(500).json({
