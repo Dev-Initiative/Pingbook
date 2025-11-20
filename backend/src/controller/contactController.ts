@@ -109,6 +109,7 @@ export async function createContact(req: AuthRequest, res: Response) {
       });
     }
 
+   // Why are you checking the label length in the system 
     // Validate labels if provided
     if (labels && labels.length > 0) {
       const existingLabels = await Label.find({
