@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  createSharedContact,
   getAllSharedContacts,
   getReceivedSharedContacts,
   getSentSharedContacts,
@@ -11,6 +12,11 @@ import {
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = Router();
+
+// POST /api/shared-contacts
+// Input: Authorization header with JWT token, { contacts: ObjectId[], sharedWithUserId: ObjectId }
+// Output: { success: boolean, message: string, sharedContact: ISharedContact }
+router.post("/", authMiddleware, createSharedContact);
 
 // GET /api/shared-contacts
 // Input: Authorization header with JWT token, query params: status? (pending/accepted/rejected)
