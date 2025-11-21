@@ -70,12 +70,10 @@ export async function loginUser(req: AuthRequest, res: Response) {
     }
 
     if (!user.emailVerified) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Please verify your email before logging in",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email before logging in",
+      });
     }
 
     const token = jwt.sign(
@@ -174,12 +172,10 @@ export async function verifyEmail(req: AuthRequest, res: Response) {
     });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid or expired verification token",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification token",
+      });
     }
 
     user.emailVerified = true;
@@ -192,12 +188,10 @@ export async function verifyEmail(req: AuthRequest, res: Response) {
       .json({ success: true, message: "Email verified successfully" });
   } catch (error) {
     console.error("Verify email error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server error during email verification",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Server error during email verification",
+    });
   }
 }
 
@@ -219,13 +213,11 @@ export async function setPassword(req: AuthRequest, res: Response) {
     }
 
     if (user.password) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message:
-            "Password already set. Use the 'Reset Password' feature to change it.",
-        });
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password already set. Use the 'Reset Password' feature to change it.",
+      });
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
@@ -236,12 +228,10 @@ export async function setPassword(req: AuthRequest, res: Response) {
       .json({ success: true, message: "Password has been set successfully." });
   } catch (error) {
     console.error("Set password error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server error during password setting",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Server error during password setting",
+    });
   }
 }
 
@@ -264,13 +254,11 @@ export async function resetPassword(req: AuthRequest, res: Response) {
 
     // Guide Google users to the correct flow
     if (!user.password) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message:
-            "This account is authenticated via Google. Please use the 'Set Password' feature to create a password.",
-        });
+      return res.status(400).json({
+        success: false,
+        message:
+          "This account is authenticated via Google. Please use the 'Set Password' feature to create a password.",
+      });
     }
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
