@@ -9,6 +9,7 @@ import {
   updateUserById,
   deleteUserById,
   getAllUsers,
+  importContacts,
 } from "../controller/userController.js";
 
 const router = Router();
@@ -65,9 +66,6 @@ router.post("/logout", authMiddleware, (req, res) => {
 // POST /api/users/import-contacts
 // Input: Authorization header with JWT token, { contacts: IContact[] }
 // Output: { success: boolean, message: string, importedCount: number }
-router.post("/import-contacts", authMiddleware, (req, res) => {
-  // TODO: Implement import contacts logic
-  res.status(501).json({ message: "Not implemented" });
-});
+router.post("/import-contacts", authMiddleware, userMiddleware, importContacts);
 
 export default router;
