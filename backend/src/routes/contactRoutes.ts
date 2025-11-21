@@ -22,7 +22,7 @@ router.get("/", authMiddleware, getAllContacts);
 router.get("/:id", authMiddleware, getContact);
 
 // POST /api/contacts
-// Input: Authorization header with JWT token, { firstname: string, lastname: string, email: string, phone: string, address?: string, photoUrl?: string, labels?: ObjectId[] }
+// Input: Authorization header with JWT token, { firstname: string, lastname: string, email?: string, phone: string, address?: string, photoUrl?: string, labels?: ObjectId[] }
 // Output: { success: boolean, message: string, contact: IContact }
 router.post("/", authMiddleware, createContact);
 
