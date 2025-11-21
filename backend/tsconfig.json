@@ -4,7 +4,10 @@
     "moduleResolution": "nodenext",
     "target": "es2020",
     "sourceMap": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true
   },
   "include": ["src/**/*.ts", "server.ts"],
   "exclude": ["node_modules", "dist"]
