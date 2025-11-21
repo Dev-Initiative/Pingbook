@@ -54,6 +54,14 @@ export const validateVerifyEmail = [
   body("token").trim().notEmpty().withMessage("Verification token is required"),
 ];
 
+// Validation for resend verification email
+export const validateResendEmail = [
+  body("email")
+    .trim()
+    .isEmail()
+    .withMessage("Please enter a valid email address"),
+];
+
 // Validation for password reset
 export const validateResetPassword = [
   body("currentPassword")

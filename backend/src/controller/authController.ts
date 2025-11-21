@@ -138,7 +138,7 @@ export async function registerUser(req: AuthRequest, res: Response) {
       password: hashedPassword,
       emailVerified: false,
       verificationToken,
-      verificationTokenExpires: Date.now() + 3600000, // 1 hour
+      verificationTokenExpires: new Date(Date.now() + 3600000), // 1 hour
     });
 
     const savedUser = await newUser.save();
@@ -191,6 +191,52 @@ export async function verifyEmail(req: AuthRequest, res: Response) {
     return res.status(500).json({
       success: false,
       message: "Server error during email verification",
+    });
+  }
+}
+
+// RESEND VERIFICATION EMAIL (resend only after the first token has expired)
+export async function resendVerificationEmail(req: AuthRequest, res: Response) {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    if (user.emailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is already verified",
+      });
+    }
+    if (
+      user.verificationTokenExpires &&
+      user.verificationTokenExpires.getTime() > Date.now()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Verification token has not expired yet. Please wait before requesting a new one.",
+      });
+    }
+    const newVerificationToken = crypto.randomBytes(32).toString("hex");
+    user.verificationToken = newVerificationToken;
+    user.verificationTokenExpires = new Date(Date.now() + 3600000);
+    await user.save();
+    await sendVerificationEmail(user.email, newVerificationToken);
+    return res.status(200).json({
+      success: true,
+      message: "Verification email resent successfully",
+    });
+  } catch (error) {
+    console.error("Resend email verification error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error during resending verification email",
     });
   }
 }
