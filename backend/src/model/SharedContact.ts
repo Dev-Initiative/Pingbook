@@ -5,7 +5,8 @@ export interface ISharedContact extends Document {
   sharedByUserId: Schema.Types.ObjectId; // the id of the user that shared the contacts
   sharedWithUserId: Schema.Types.ObjectId; // the id of the user that the contacts were shared to
   status: "accepted" | "pending" | "rejected"; // status of the shared contact
-  sharedAt: Date; // date when the contacts were shared
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const SharedContactSchema = new Schema(
@@ -32,12 +33,8 @@ const SharedContactSchema = new Schema(
       enum: ["accepted", "pending", "rejected"],
       default: "pending",
     },
-    sharedAt: {
-      type: Date,
-      default: Date.now,
-    },
   },
-  { timestamps: { createdAt: true, updatedAt: false } }
+  { timestamps: true } // Use standard timestamps
 );
 
 export const SharedContact = model<ISharedContact>(

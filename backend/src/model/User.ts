@@ -3,16 +3,14 @@ import { Schema, model, Document } from "mongoose";
 export interface IUser extends Document {
   username: string;
   email: string;
-  phone: string;
-  password: string;
-  emailVerified: boolean;
-  settings?: {
-    theme: "light" | "dark";
-    notifications: boolean;
-  };
+  password?: string; // Optional: Not present for Google users
+  phone?: string;
   avatar?: string;
+  emailVerified: boolean;
   verificationToken?: string;
   verificationTokenExpires?: Date;
+  googleId?: string;
+  settings?:Schema.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,41 +18,46 @@ export interface IUser extends Document {
 const UserSchema = new Schema<IUser>(
   {
     username: {
+      unique: true,
       type: String,
-      required: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
     },
+    password: {
+      type: String, // Not required
+    },
     phone: {
       type: String,
-      required: true,
       unique: true,
+      sparse: true,
     },
-    password: {
+    avatar: {
       type: String,
-      required: true,
+      default: "",
     },
     emailVerified: {
       type: Boolean,
       default: false,
     },
-    settings: {
-      theme: {
-        type: String,
-        enum: ["light", "dark"],
-        default: "light",
-      },
-      notifications: {
-        type: Boolean,
-        default: true,
-      },
-    },
-    avatar: {
+    verificationToken: {
       type: String,
-      default: "", // set a default avatarURL if needed
+    },
+    verificationTokenExpires: {
+      type: Date,
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    settings: {
+      type: [Schema.Types.ObjectId],
+      ref: "Setting",
+      default: [],
+      required: false,
     },
   },
   { timestamps: true }

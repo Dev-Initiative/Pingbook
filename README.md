@@ -1,2 +1,3 @@
 # Pingbook
-Pingbook is the repo for the backend services of the proposed contact store application
+
+Pingbook is the backend for the contact management system that helps you keep your contacts organized and easily accessible.
