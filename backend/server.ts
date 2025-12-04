@@ -13,6 +13,8 @@ import labelRoutes from "./src/routes/labelRoutes.js";
 import sharedContactRoutes from "./src/routes/sharedContactRoutes.js";
 import settingsRoutes from "./src/routes/settingsRoutes.js";
 import exportRoutes from "./src/routes/exportRoutes.js";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,6 +36,149 @@ app.use(
 // Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Swagger setup
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Contact Management API",
+      version: "1.0.0",
+      description: "API for managing contacts, users, and related operations",
+    },
+    servers: [
+      {
+        url: "http://localhost:3000",
+        description: "Development server",
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+      schemas: {
+        User: {
+          type: "object",
+          properties: {
+            _id: { type: "string" },
+            username: { type: "string" },
+            email: { type: "string", format: "email" },
+            phone: { type: "string" },
+            avatar: { type: "string" },
+            emailVerified: { type: "boolean" },
+            googleId: { type: "string" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        Contact: {
+          type: "object",
+          properties: {
+            _id: { type: "string" },
+            firstname: { type: "string" },
+            lastname: { type: "string" },
+            email: { type: "string", format: "email" },
+            phone: { type: "string" },
+            address: { type: "string" },
+            userId: { type: "string" },
+            photoUrl: { type: "string" },
+            labels: { type: "array", items: { type: "string" } },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+          required: ["firstname", "lastname", "phone", "userId"],
+        },
+        Label: {
+          type: "object",
+          properties: {
+            _id: { type: "string" },
+            name: { type: "string" },
+            color: { type: "string" },
+            description: { type: "string" },
+            userId: { type: "string" },
+            contacts: { type: "array", items: { type: "string" } },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+          required: ["name", "userId"],
+        },
+        SharedContact: {
+          type: "object",
+          properties: {
+            _id: { type: "string" },
+            contacts: { type: "array", items: { type: "string" } },
+            sharedByUserId: { type: "string" },
+            sharedWithUserId: { type: "string" },
+            status: {
+              type: "string",
+              enum: ["accepted", "pending", "rejected"],
+            },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+          required: ["contacts", "sharedByUserId", "sharedWithUserId"],
+        },
+        Settings: {
+          type: "object",
+          properties: {
+            _id: { type: "string" },
+            userId: { type: "string" },
+            theme: { type: "string", enum: ["light", "dark"] },
+            notificationsEnabled: { type: "boolean" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+          required: ["userId"],
+        },
+        Export: {
+          type: "object",
+          properties: {
+            _id: { type: "string" },
+            userId: { type: "string" },
+            format: { type: "string", enum: ["csv", "vcf"] },
+            status: {
+              type: "string",
+              enum: ["completed", "in_progress", "failed"],
+            },
+            labelId: { type: "string" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+          required: ["userId", "format"],
+        },
+        ApiResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean" },
+            message: { type: "string" },
+          },
+        },
+        AuthResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean" },
+            message: { type: "string" },
+            token: { type: "string" },
+            user: { $ref: "#/components/schemas/User" },
+          },
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
+  },
+  apis: ["./src/routes/*.ts"], // Paths to files containing OpenAPI definitions
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use("/api/auth", authRoutes);
