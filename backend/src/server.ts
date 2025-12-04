@@ -4,15 +4,15 @@ dotenv.config(); // Load environment variables from .env file
 import express, { Request, Response } from "express";
 import cors from "cors";
 import session from "express-session";
-import passport from "./src/config/passport.js";
-import { connectDB } from "./src/config/db.js";
-import authRoutes from "./src/routes/authRoutes.js";
-import userRoutes from "./src/routes/userRoutes.js";
-import contactRoutes from "./src/routes/contactRoutes.js";
-import labelRoutes from "./src/routes/labelRoutes.js";
-import sharedContactRoutes from "./src/routes/sharedContactRoutes.js";
-import settingsRoutes from "./src/routes/settingsRoutes.js";
-import exportRoutes from "./src/routes/exportRoutes.js";
+import passport from "./config/passport.js";
+import { connectDB } from "./config/db.js";
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
+import labelRoutes from "./routes/labelRoutes.js";
+import sharedContactRoutes from "./routes/sharedContactRoutes.js";
+import settingsRoutes from "./routes/settingsRoutes.js";
+import exportRoutes from "./routes/exportRoutes.js";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
