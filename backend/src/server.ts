@@ -51,6 +51,10 @@ const swaggerOptions = {
         url: "http://localhost:3000",
         description: "Development server",
       },
+      {
+        url: "https://pingbook-n33t.onrender.com",
+        description: "Production server",
+      },
     ],
     components: {
       securitySchemes: {
