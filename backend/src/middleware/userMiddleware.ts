@@ -37,8 +37,17 @@ export const userMiddleware = async (
     req.currentUser = existingUser;
 
     next();
-  } catch (error) {
+  } catch (error: any) {
     console.error("User Middleware Error:", error);
+
+    // Handle invalid ObjectId format
+    if (error.name === "CastError" && error.kind === "ObjectId") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID in token",
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: "Server error while loading user",
