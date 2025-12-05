@@ -1,22 +1,94 @@
 import { Router } from "express";
 import { settingsMiddleware } from "../middleware/settingsMiddleware.js";
-import { getSettings, createSettings, updateSettings } from "../controller/settingsController.js";
+import {
+  getSettings,
+  createSettings,
+  updateSettings,
+} from "../controller/settingsController.js";
 
 const router = Router();
 
-// GET /api/settings
-// Input: Authorization header with JWT token
-// Output: { success: boolean, settings: ISettings }
+/**
+ * @swagger
+ * /api/settings:
+ *   get:
+ *     summary: Get user settings
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User settings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 settings: { $ref: '#/components/schemas/Settings' }
+ */
 router.get("/", settingsMiddleware, getSettings);
 
-// PUT /api/settings
-// Input: Authorization header with JWT token, { theme?: "light" | "dark", notificationsEnabled?: boolean }
-// Output: { success: boolean, message: string, settings: ISettings }
+/**
+ * @swagger
+ * /api/settings:
+ *   put:
+ *     summary: Update user settings
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               theme: { type: string, enum: [light, dark] }
+ *               notificationsEnabled: { type: boolean }
+ *     responses:
+ *       200:
+ *         description: Settings updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 message: { type: string }
+ *                 settings: { $ref: '#/components/schemas/Settings' }
+ */
 router.put("/", settingsMiddleware, updateSettings);
 
-// POST /api/settings
-// Input: Authorization header with JWT token, { theme?: "light" | "dark", notificationsEnabled?: boolean }
-// Output: { success: boolean, message: string, settings: ISettings }
+/**
+ * @swagger
+ * /api/settings:
+ *   post:
+ *     summary: Create user settings
+ *     tags: [Settings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               theme: { type: string, enum: [light, dark] }
+ *               notificationsEnabled: { type: boolean }
+ *     responses:
+ *       200:
+ *         description: Settings created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 message: { type: string }
+ *                 settings: { $ref: '#/components/schemas/Settings' }
+ */
 router.post("/", settingsMiddleware, createSettings);
 
 export default router;
