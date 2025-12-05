@@ -22,7 +22,10 @@ export const getProfile = async (req: UserRequest, res: Response) => {
 export const updateProfile = async (req: UserRequest, res: Response) => {
   try {
     const user = req.currentUser;
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     const { username, email, phone, avatar, settings } = req.body;
 
@@ -38,7 +41,9 @@ export const updateProfile = async (req: UserRequest, res: Response) => {
     }
 
     await user.save();
-    return res.status(200).json({ success: true, message: "Profile updated", user });
+    return res
+      .status(200)
+      .json({ success: true, message: "Profile updated", user });
   } catch (error) {
     console.error("Update profile error:", error);
     return res.status(500).json({
@@ -52,10 +57,15 @@ export const updateProfile = async (req: UserRequest, res: Response) => {
 export const deleteProfile = async (req: UserRequest, res: Response) => {
   try {
     const user = req.currentUser;
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     await User.findByIdAndDelete(user._id);
-    return res.status(200).json({ success: true, message: "User account deleted" });
+    return res
+      .status(200)
+      .json({ success: true, message: "User account deleted" });
   } catch (error) {
     console.error("Delete profile error:", error);
     return res.status(500).json({
@@ -68,8 +78,12 @@ export const deleteProfile = async (req: UserRequest, res: Response) => {
 // GET /api/users/:id
 export const getUserById = async (req: UserRequest, res: Response) => {
   try {
+    console.log("getUserById called with id:", req.params.id);
     const user = await User.findById(req.params.id).select("-password");
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     return res.status(200).json({ success: true, user });
   } catch (error) {
     console.error("Get user by ID error:", error);
@@ -81,7 +95,10 @@ export const getUserById = async (req: UserRequest, res: Response) => {
 export const updateUserById = async (req: UserRequest, res: Response) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     const { username, email, phone, avatar, settings, password } = req.body;
 
@@ -93,7 +110,9 @@ export const updateUserById = async (req: UserRequest, res: Response) => {
     if (password) user.password = await bcrypt.hash(password, 10);
 
     await user.save();
-    return res.status(200).json({ success: true, message: "User updated", user });
+    return res
+      .status(200)
+      .json({ success: true, message: "User updated", user });
   } catch (error) {
     console.error("Update user error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -104,7 +123,10 @@ export const updateUserById = async (req: UserRequest, res: Response) => {
 export const deleteUserById = async (req: UserRequest, res: Response) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     await User.findByIdAndDelete(req.params.id);
     return res.status(200).json({ success: true, message: "User deleted" });
@@ -132,7 +154,9 @@ export const importContacts = async (req: UserRequest, res: Response) => {
   try {
     const user = req.currentUser;
     if (!user) {
-      return res.status(401).json({ success: false, message: "User not authenticated" });
+      return res
+        .status(401)
+        .json({ success: false, message: "User not authenticated" });
     }
 
     const { contacts } = req.body;
@@ -141,14 +165,14 @@ export const importContacts = async (req: UserRequest, res: Response) => {
     if (!Array.isArray(contacts)) {
       return res.status(400).json({
         success: false,
-        message: "Contacts must be an array"
+        message: "Contacts must be an array",
       });
     }
 
     if (contacts.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Contacts array cannot be empty"
+        message: "Contacts array cannot be empty",
       });
     }
 
@@ -161,13 +185,17 @@ export const importContacts = async (req: UserRequest, res: Response) => {
 
       // Check required fields
       if (!contact.firstname || !contact.lastname || !contact.phone) {
-        errors.push(`Contact ${i + 1}: Missing required fields (firstname, lastname, phone)`);
+        errors.push(
+          `Contact ${
+            i + 1
+          }: Missing required fields (firstname, lastname, phone)`
+        );
         continue;
       }
 
       // Validate phone number format (basic check)
       const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-      if (!phoneRegex.test(contact.phone.replace(/[\s\-\(\)]/g, ''))) {
+      if (!phoneRegex.test(contact.phone.replace(/[\s\-\(\)]/g, ""))) {
         errors.push(`Contact ${i + 1}: Invalid phone number format`);
         continue;
       }
@@ -189,7 +217,7 @@ export const importContacts = async (req: UserRequest, res: Response) => {
       return res.status(400).json({
         success: false,
         message: "No valid contacts to import",
-        errors
+        errors,
       });
     }
 
@@ -201,9 +229,8 @@ export const importContacts = async (req: UserRequest, res: Response) => {
       success: true,
       message: `Successfully imported ${importedContacts.length} contacts`,
       importedCount: importedContacts.length,
-      ...(errors.length > 0 && { errors, skippedCount: errors.length })
+      ...(errors.length > 0 && { errors, skippedCount: errors.length }),
     });
-
   } catch (error) {
     console.error("Import contacts error:", error);
 
@@ -211,13 +238,13 @@ export const importContacts = async (req: UserRequest, res: Response) => {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: "Some contacts could not be imported due to duplicate data"
+        message: "Some contacts could not be imported due to duplicate data",
       });
     }
 
     return res.status(500).json({
       success: false,
-      message: "Server error while importing contacts"
+      message: "Server error while importing contacts",
     });
   }
 };

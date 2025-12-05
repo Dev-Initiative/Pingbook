@@ -60,6 +60,27 @@ router.get("/is-auth", authMiddleware, (req, res) => {
 
 /**
  * @swagger
+ * /api/users/profile:
+ *   get:
+ *     summary: Get user profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 user: { $ref: '#/components/schemas/User' }
+ */
+router.get("/profile", authMiddleware, userMiddleware, getProfile);
+
+/**
+ * @swagger
  * /api/users/{id}:
  *   get:
  *     summary: Get user by ID
@@ -84,6 +105,39 @@ router.get("/is-auth", authMiddleware, (req, res) => {
  *                 user: { $ref: '#/components/schemas/User' }
  */
 router.get("/:id", authMiddleware, getUserById);
+
+/**
+ * @swagger
+ * /api/users/profile:
+ *   put:
+ *     summary: Update user profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username: { type: string }
+ *               email: { type: string, format: email }
+ *               phone: { type: string }
+ *               avatar: { type: string }
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 message: { type: string }
+ *                 user: { $ref: '#/components/schemas/User' }
+ */
+router.put("/profile", authMiddleware, userMiddleware, updateProfile);
 
 /**
  * @swagger
@@ -150,60 +204,6 @@ router.put("/:id", authMiddleware, updateUserById);
  *                 message: { type: string }
  */
 router.delete("/:id", authMiddleware, deleteUserById);
-
-/**
- * @swagger
- * /api/users/profile:
- *   get:
- *     summary: Get user profile
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: User profile
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success: { type: boolean }
- *                 user: { $ref: '#/components/schemas/User' }
- */
-router.get("/profile", authMiddleware, userMiddleware, getProfile);
-
-/**
- * @swagger
- * /api/users/profile:
- *   put:
- *     summary: Update user profile
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               username: { type: string }
- *               email: { type: string, format: email }
- *               phone: { type: string }
- *               avatar: { type: string }
- *     responses:
- *       200:
- *         description: Profile updated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success: { type: boolean }
- *                 message: { type: string }
- *                 user: { $ref: '#/components/schemas/User' }
- */
-router.put("/profile", authMiddleware, userMiddleware, updateProfile);
 
 /**
  * @swagger
