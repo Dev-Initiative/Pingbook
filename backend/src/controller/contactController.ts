@@ -2,6 +2,8 @@ import { Response } from "express";
 import { Contact } from "../model/Contact.js";
 import { Label } from "../model/Label.js";
 import { SharedContact } from "../model/SharedContact.js";
+import { Notification } from "../model/Notification.js";
+import { User } from "../model/User.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 
 // GET ALL CONTACTS FOR USER
@@ -269,6 +271,24 @@ export async function deleteContact(req: AuthRequest, res: Response) {
     // Remove contact from labels
     await Label.updateMany({ contacts: id }, { $pull: { contacts: id } });
 
+    // Find users who had this contact shared with them and notify them
+    const sharedContacts = await SharedContact.find({ contactId: id });
+    if (sharedContacts.length > 0) {
+      const sharedUserIds = sharedContacts.map((share) =>
+        share.sharedWithUserId.toString()
+      );
+      // Create notifications for each shared user
+      const notifications = sharedUserIds.map((sharedUserId) => ({
+        userId: sharedUserId,
+        message: "A shared contact has been deleted by the owner",
+        type: "contact_deleted",
+      }));
+      await Notification.insertMany(notifications);
+
+      // Optionally, delete the SharedContact records
+      await SharedContact.deleteMany({ contactId: id });
+    }
+
     return res.status(200).json({
       success: true,
       message: "Contact deleted successfully",
@@ -325,6 +345,18 @@ export async function shareContact(req: AuthRequest, res: Response) {
       "contactId",
       "firstname lastname email phone"
     );
+
+    // Create notification for the recipient
+    const sharer = await User.findById(userId).select("username");
+    const notificationMessage = sharer
+      ? `${sharer.username} shared a contact with you`
+      : "You have a new shared contact";
+    const notification = new Notification({
+      userId: sharedWithUserId,
+      message: notificationMessage,
+      type: "contact_shared",
+    });
+    await notification.save();
 
     return res.status(201).json({
       success: true,
