@@ -12,6 +12,7 @@ import labelRoutes from "./routes/labelRoutes.js";
 import sharedContactRoutes from "./routes/sharedContactRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
 import exportRoutes from "./routes/exportRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 const app = express();
@@ -146,6 +147,19 @@ const swaggerOptions = {
                     },
                     required: ["userId", "format"],
                 },
+                Notification: {
+                    type: "object",
+                    properties: {
+                        _id: { type: "string" },
+                        userId: { type: "string" },
+                        message: { type: "string" },
+                        type: { type: "string" },
+                        isRead: { type: "boolean" },
+                        createdAt: { type: "string", format: "date-time" },
+                        updatedAt: { type: "string", format: "date-time" },
+                    },
+                    required: ["userId", "message"],
+                },
                 ApiResponse: {
                     type: "object",
                     properties: {
@@ -182,6 +196,7 @@ app.use("/api/labels", labelRoutes);
 app.use("/api/shared-contacts", sharedContactRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/exports", exportRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.get("/", (req, res) => {
     res.send("Contact management system backend says hello.");
 });
