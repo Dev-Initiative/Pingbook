@@ -371,9 +371,12 @@ export async function mergeContacts(req: AuthRequest, res: Response) {
     for (const dup of duplicates) {
       dup.labels.forEach((id) => allLabels.add(id));
     }
-    primary.labels = Array.from(allLabels).map((id) =>
-      id instanceof Schema.Types.ObjectId ? id : new Schema.Types.ObjectId(id)
-    );
+    primary.labels = Array.from(allLabels).map((id: any) => {
+      const val = id.valueOf ? id.valueOf() : id;
+      return val instanceof Types.ObjectId
+        ? val
+        : new Types.ObjectId(val as any);
+    }) as any;
 
     if (
       !primary.firstname?.trim() ||
