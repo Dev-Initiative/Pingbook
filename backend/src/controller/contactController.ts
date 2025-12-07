@@ -1,4 +1,5 @@
 import { Response } from "express";
+import { Types, Schema } from "mongoose";
 import { Contact } from "../model/Contact.js";
 import { Label } from "../model/Label.js";
 import { SharedContact } from "../model/SharedContact.js";
@@ -298,6 +299,125 @@ export async function deleteContact(req: AuthRequest, res: Response) {
     return res.status(500).json({
       success: false,
       message: "Server error while deleting contact",
+    });
+  }
+}
+
+// MERGE DUPLICATE CONTACTS
+export async function mergeContacts(req: AuthRequest, res: Response) {
+  try {
+    const userId = req.user?.id;
+    const { primaryContactId, duplicateIds } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    if (
+      !primaryContactId ||
+      !duplicateIds ||
+      !Array.isArray(duplicateIds) ||
+      duplicateIds.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "primaryContactId and duplicateIds array are required",
+      });
+    }
+
+    // Find primary contact
+    const primary = await Contact.findOne({ _id: primaryContactId, userId });
+    if (!primary) {
+      return res.status(404).json({
+        success: false,
+        message: "Primary contact not found",
+      });
+    }
+
+    // Find duplicates
+    const duplicates = await Contact.find({
+      _id: { $in: duplicateIds },
+      userId,
+    });
+    if (duplicates.length !== duplicateIds.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Some duplicate contacts not found",
+      });
+    }
+
+    // Merge logic: fill missing fields from duplicates
+    const fields = [
+      "firstname",
+      "lastname",
+      "email",
+      "phone",
+      "address",
+      "photoUrl",
+    ];
+    for (const field of fields) {
+      if (!primary[field]) {
+        for (const dup of duplicates) {
+          if (dup[field]) {
+            primary[field] = dup[field];
+            break;
+          }
+        }
+      }
+    }
+
+    // Combine labels uniquely
+    const allLabels = new Set(primary.labels.map((id) => id.toString()));
+    for (const dup of duplicates) {
+      dup.labels.forEach((id) => allLabels.add(id.toString()));
+    }
+    primary.labels = Array.from(allLabels).map(
+      (id) => new Schema.Types.ObjectId(id)
+    );
+
+    // Save updated primary contact
+    await primary.save();
+
+    // Delete duplicates
+    await Contact.deleteMany({ _id: { $in: duplicateIds } });
+
+    // Update labels: remove deleted contacts
+    await Label.updateMany({}, { $pull: { contacts: { $in: duplicateIds } } });
+
+    // Handle shared contacts for duplicates
+    const sharedForDuplicates = await SharedContact.find({
+      contactId: { $in: duplicateIds },
+    });
+    if (sharedForDuplicates.length > 0) {
+      const sharedUserIds = [
+        ...new Set(
+          sharedForDuplicates.map((s) => s.sharedWithUserId.toString())
+        ),
+      ];
+      // Create notifications
+      const notifications = sharedUserIds.map((sharedUserId) => ({
+        userId: sharedUserId,
+        message: "A shared contact has been merged and duplicates removed",
+        type: "contact_merged",
+      }));
+      await Notification.insertMany(notifications);
+
+      // Delete shared records
+      await SharedContact.deleteMany({ contactId: { $in: duplicateIds } });
+    }
+
+    await primary.populate("labels", "name color");
+
+    return res.status(200).json({
+      success: true,
+      message: "Contacts merged successfully",
+      mergedContact: primary,
+    });
+  } catch (error) {
+    console.error("Merge contacts error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while merging contacts",
     });
   }
 }

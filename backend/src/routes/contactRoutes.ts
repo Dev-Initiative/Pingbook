@@ -5,6 +5,7 @@ import {
   createContact,
   updateContact,
   deleteContact,
+  mergeContacts,
   shareContact,
 } from "../controller/contactController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
@@ -225,5 +226,45 @@ router.delete("/:id", authMiddleware, deleteContact);
  *                 sharedContact: { $ref: '#/components/schemas/SharedContact' }
  */
 router.post("/:id/share", authMiddleware, shareContact);
+
+/**
+ * @swagger
+ * /api/contacts/merge:
+ *   post:
+ *     summary: Merge duplicate contacts
+ *     tags: [Contacts]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - primaryContactId
+ *               - duplicateIds
+ *             properties:
+ *               primaryContactId: { type: string, description: "ID of the primary contact to keep" }
+ *               duplicateIds: { type: array, items: { type: string }, description: "Array of duplicate contact IDs to merge and delete" }
+ *     responses:
+ *       200:
+ *         description: Contacts merged successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 message: { type: string }
+ *                 mergedContact: { $ref: '#/components/schemas/Contact' }
+ *       400:
+ *         description: Invalid request data
+ *       404:
+ *         description: Contact not found
+ *       500:
+ *         description: Server error
+ */
+router.post("/merge", authMiddleware, mergeContacts);
 
 export default router;
