@@ -356,9 +356,9 @@ export async function mergeContacts(req: AuthRequest, res: Response) {
       "photoUrl",
     ];
     for (const field of fields) {
-      if (!primary[field]) {
+      if (!primary[field] || primary[field].trim() === "") {
         for (const dup of duplicates) {
-          if (dup[field]) {
+          if (dup[field] && dup[field].trim() !== "") {
             primary[field] = dup[field];
             break;
           }
@@ -374,6 +374,18 @@ export async function mergeContacts(req: AuthRequest, res: Response) {
     primary.labels = Array.from(allLabels).map(
       (id) => new Schema.Types.ObjectId(id)
     );
+
+    if (
+      !primary.firstname?.trim() ||
+      !primary.lastname?.trim() ||
+      !primary.phone?.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Cannot merge: required fields (firstname, lastname, phone) must be provided and cannot be empty",
+      });
+    }
 
     // Save updated primary contact
     await primary.save();
