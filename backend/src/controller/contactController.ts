@@ -367,13 +367,24 @@ export async function mergeContacts(req: AuthRequest, res: Response) {
     }
 
     // Combine labels uniquely
+    console.log("Primary labels:", primary.labels);
+    console.log(
+      "Primary labels type:",
+      typeof primary.labels[0],
+      primary.labels[0]
+    );
     const allLabels = new Set(primary.labels.map((id) => id.toString()));
     for (const dup of duplicates) {
+      console.log("Dup labels:", dup.labels);
+      console.log("Dup labels type:", typeof dup.labels[0], dup.labels[0]);
       dup.labels.forEach((id) => allLabels.add(id.toString()));
     }
-    primary.labels = Array.from(allLabels).map(
+    console.log("allLabels:", allLabels);
+    const newLabels = Array.from(allLabels).map(
       (id) => new Schema.Types.ObjectId(id)
     );
+    console.log("newLabels:", newLabels);
+    primary.labels = newLabels;
 
     if (
       !primary.firstname?.trim() ||
