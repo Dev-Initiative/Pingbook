@@ -75,3 +75,22 @@ export const validateResetPassword = [
     .matches(/^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/)
     .withMessage("New password contains invalid characters"),
 ];
+
+// Validation for forgot password
+export const validateForgotPassword = [
+  body("email")
+    .trim()
+    .isEmail()
+    .withMessage("Please enter a valid email address"),
+];
+
+// Validation for reset password with token
+export const validateResetPasswordWithToken = [
+  body("token").trim().notEmpty().withMessage("Reset token is required"),
+  body("newPassword")
+    .trim()
+    .isLength({ min: 6 })
+    .withMessage("New password must be at least 6 characters long")
+    .matches(/^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/)
+    .withMessage("New password contains invalid characters"),
+];

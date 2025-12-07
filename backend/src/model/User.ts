@@ -9,8 +9,10 @@ export interface IUser extends Document {
   emailVerified: boolean;
   verificationToken?: string;
   verificationTokenExpires?: Date;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   googleId?: string;
-  settings?:Schema.Types.ObjectId[];
+  settings?: Schema.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +48,12 @@ const UserSchema = new Schema<IUser>(
       type: String,
     },
     verificationTokenExpires: {
+      type: Date,
+    },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
       type: Date,
     },
     googleId: {

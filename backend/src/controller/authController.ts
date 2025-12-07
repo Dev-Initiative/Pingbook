@@ -116,6 +116,26 @@ const sendVerificationEmail = async (email: string, token: string) => {
   }
 };
 
+const sendResetPasswordEmail = async (email: string, token: string) => {
+  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL_FROM) {
+    console.error("SendGrid API key or sender email not configured");
+    return;
+  }
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  const resetURL = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+  const msg = {
+    to: email,
+    from: { email: process.env.SENDGRID_EMAIL_FROM, name: "Pingbook Support" },
+    subject: "Reset Your Password - Pingbook",
+    html: `<p>You requested a password reset. Click this link to reset your password: <a href="${resetURL}">${resetURL}</a></p><p>If you didn't request this, please ignore this email.</p>`,
+  };
+  try {
+    await sgMail.send(msg);
+  } catch (error) {
+    console.error("Error sending reset password email:", error);
+  }
+};
+
 // STANDARD REGISTER CONTROLLER
 export async function registerUser(req: AuthRequest, res: Response) {
   try {
@@ -241,6 +261,42 @@ export async function resendVerificationEmail(req: AuthRequest, res: Response) {
   }
 }
 
+// FORGOT PASSWORD CONTROLLER
+export async function forgotPassword(req: AuthRequest, res: Response) {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      // Don't reveal if email exists for security
+      return res.status(200).json({
+        success: true,
+        message:
+          "If an account with that email exists, a password reset link has been sent.",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+    await user.save();
+
+    await sendResetPasswordEmail(user.email, resetToken);
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "If an account with that email exists, a password reset link has been sent.",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during password reset request",
+    });
+  }
+}
+
 // SET PASSWORD CONTROLLER (for Google users setting a password for the first time)
 export async function setPassword(req: AuthRequest, res: Response) {
   try {
@@ -325,5 +381,40 @@ export async function resetPassword(req: AuthRequest, res: Response) {
     return res
       .status(500)
       .json({ success: false, message: "Server error during password reset" });
+  }
+}
+
+// RESET PASSWORD WITH TOKEN CONTROLLER (for forgot password)
+export async function resetPasswordWithToken(req: AuthRequest, res: Response) {
+  try {
+    const { token, newPassword } = req.body;
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password has been reset successfully",
+    });
+  } catch (error) {
+    console.error("Reset password with token error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during password reset",
+    });
   }
 }

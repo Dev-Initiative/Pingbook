@@ -8,6 +8,8 @@ import {
   googleLogin,
   setPassword,
   resendVerificationEmail,
+  forgotPassword,
+  resetPasswordWithToken,
 } from "../controller/authController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import {
@@ -16,6 +18,8 @@ import {
   validateVerifyEmail,
   validateResendEmail,
   validateResetPassword,
+  validateForgotPassword,
+  validateResetPasswordWithToken,
   handleValidationErrors,
 } from "../middleware/validateAuth.js";
 
@@ -208,6 +212,70 @@ router.put(
  *               $ref: '#/components/schemas/ApiResponse'
  */
 router.post("/set-password", authMiddleware, setPassword);
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Request password reset
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email: { type: string, format: email }
+ *     responses:
+ *       200:
+ *         description: Reset link sent if email exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ */
+router.post(
+  "/forgot-password",
+  validateForgotPassword,
+  handleValidationErrors,
+  forgotPassword
+);
+
+/**
+ * @swagger
+ * /api/auth/reset-password-token:
+ *   post:
+ *     summary: Reset password with token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               token: { type: string }
+ *               newPassword: { type: string, minLength: 6 }
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ */
+router.post(
+  "/reset-password-token",
+  validateResetPasswordWithToken,
+  handleValidationErrors,
+  resetPasswordWithToken
+);
 
 /**
  * @swagger
