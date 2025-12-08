@@ -7,6 +7,7 @@ import {
   deleteContact,
   mergeContacts,
   shareContact,
+  exportContacts,
 } from "../controller/contactController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
@@ -266,5 +267,41 @@ router.post("/:id/share", authMiddleware, shareContact);
  *         description: Server error
  */
 router.post("/merge", authMiddleware, mergeContacts);
+
+/**
+ * @swagger
+ * /api/contacts/export:
+ *   get:
+ *     summary: Export contacts
+ *     tags: [Contacts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: format
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [csv, vcf]
+ *       - in: query
+ *         name: labelId
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: File download
+ *         content:
+ *           application/octet-stream:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: Invalid format
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get("/export", authMiddleware, exportContacts);
 
 export default router;

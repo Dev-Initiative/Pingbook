@@ -506,3 +506,73 @@ export async function shareContact(req: AuthRequest, res: Response) {
     });
   }
 }
+
+// EXPORT CONTACTS
+export async function exportContacts(req: AuthRequest, res: Response) {
+  try {
+    const userId = req.user?.id;
+    const { format, labelId } = req.query;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    if (!format || !["csv", "vcf"].includes(format as string)) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Invalid format. Must be 'csv' or 'vcf'",
+        });
+    }
+
+    let query: any = { userId };
+    if (labelId) {
+      query.labels = labelId;
+    }
+
+    const contacts = await Contact.find(query).populate("labels", "name");
+
+    if (format === "csv") {
+      const csvHeader = "First Name,Last Name,Email,Phone,Address,Labels\n";
+      const csvRows = contacts
+        .map((contact) => {
+          const labels = contact.labels
+            .map((label: any) => label.name)
+            .join("; ");
+          return `"${contact.firstname}","${contact.lastname}","${
+            contact.email || ""
+          }","${contact.phone}","${contact.address || ""}","${labels}"`;
+        })
+        .join("\n");
+
+      const csvContent = csvHeader + csvRows;
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename=contacts.csv`);
+      return res.send(csvContent);
+    } else if (format === "vcf") {
+      let vcfContent = "";
+      contacts.forEach((contact, index) => {
+        vcfContent += `BEGIN:VCARD\n`;
+        vcfContent += `VERSION:3.0\n`;
+        vcfContent += `FN:${contact.firstname} ${contact.lastname}\n`;
+        vcfContent += `N:${contact.lastname};${contact.firstname};;;\n`;
+        if (contact.email) vcfContent += `EMAIL:${contact.email}\n`;
+        if (contact.phone) vcfContent += `TEL:${contact.phone}\n`;
+        if (contact.address) vcfContent += `ADR:;;${contact.address};;;;\n`;
+        vcfContent += `END:VCARD\n`;
+      });
+
+      res.setHeader("Content-Type", "text/vcard");
+      res.setHeader("Content-Disposition", `attachment; filename=contacts.vcf`);
+      return res.send(vcfContent);
+    }
+  } catch (error) {
+    console.error("Export contacts error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while exporting contacts",
+    });
+  }
+}
